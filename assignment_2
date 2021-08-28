@@ -1,0 +1,153 @@
+----------------------------------------------------------------------
+Cancelled Flight Carriers
+----------------------------------------
+Find all carriers who cancelled more than 1 flights during 2007, order them from biggest to lowest by number 
+of cancelled flights and list in each record all departure cities where cancellation happened.
+
+Input:
+carrier,FlightNum,cancel_status,dep_city,    journey_dt
+AIR1 ,   A101 	  ,0,			Hyd,	  	 2010-1-1
+AIR1 ,   A110 	  ,1,			Chicago,	 2007-1-1
+AIR1 ,   A101 	  ,1,			New York,	 2007-10-1
+AIR1 ,   A145 	  ,1,			San Diego,	 2007-05-25
+AIR1 ,   A148 	  ,1,			San Diego,	 2009-05-25
+AIR2 ,   E101,	  0,			Hyd,		 2010-1-1
+AIR2 ,   E110 ,   1,			Miami,		 2007-1-1
+AIR2 ,   E101 ,   1,			Tucson,		 2007-10-1
+AIR2 ,   E145 ,   1,			Huston,		 2007-05-25
+AIR2 ,   E148 ,   1,			San Diego,	 2009-05-25
+
+output:
+    |Carrier| Canceled flights|Cities|
+    |-------|:---------------:|----------------------------:|
+    |AIR1   |3             |Chicago, New York, San Diego |
+    |AIR2   | 3              |Miami, Tucson, Huston, Boston|
+
+import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
+
+val spark = SparkSession.builder.master("local").appName("Test").getOrCreate()
+import spark.implicits._
+
+var flightDf = spark.read.option("header", "true").inferSchema("true").csv("path")
+flightDf = flightDf.filter(year($"journy_dt").eq(lit(2007)).and($"cancel_status".eq(lit(1))))
+flightDf = flightDf.groupBy($"carrier").agg(count_distinct($"FlightNum").as("Canceled flights"), collect_set("dep_city").as("Cities"))
+
+====
+Sample Twitter Data:
+
+{
+"id":"53627",
+"user":"EPAM_BD",
+"text":"#epam_rocks #epam_internal #EPAM #HACKATON ROCKS. #Love #EPAM #Hackathons.",
+"place":"Hyderabad, INDIA"
+}
+{
+"id":"53628",
+"user":"EPAM_RDD",
+"text":"#epam_rocks #epam_internal #EPAM #HACKATON ROCKS. #Love #EPAM #Hackathons.",
+"place":"Hyderabad, INDIA"
+}
+{
+"id":"53629",
+"user":"EPAM_HDD",
+"text":"#epam_rocks #epam_internal #EPAM #HACKATON ROCKS. #Love #EPAM #Hackathons.",
+"place":"Hyderabad, INDIA
+}
+{
+"id":"53630",
+"user":"EPAM_BD",
+"text":"#epam_rocks #epam_internal #EPAM #HACKATON ROCKS. #Love #EPAM #Hackathons.",
+"place":"Hyderabad, INDIA"
+}
+
+Use Spark DF API to provide the solution. 
+
+1) Convert to below structure
+id      user    place            hashtag
+53630  EPAM_BD  Hyderabad, INDIA  epam_rocks
+53630  EPAM_BD  Hyderabad, INDIA  epam_internal
+53630  EPAM_BD  Hyderabad, INDIA  EPAM
+........
+
+
+var tweetDf = spark.read.option("multiline", "true").json("path")
+tweetDf = tweetDf.withColumn("hashtag", split($"text", "#")).drop($"text")
+tweetDf = tweetDf.withColumn("hashtag", explode($"hashtag"))	
+tweetDf.show()
+
+============
+
+Sample coding task
+
+Dataset structure (parquet/csv):
+name | Designation | year | month | salary
+
+Create Dataframe and then perform below ops
+
+
+3)For each employee calculate salary rank within job designation for March, 2018 
+
+val winSpec = Window.partitionBy($"designation").orderBy($"salary".desc)
+empDf.filter($"year".eq("2018").and($"month".eq("March")))
+empDf.withColumn("rank", dense_rank().over(winSpec)).show()
+
+	Same scenario - find employee rank across all designations  for year 2019
+
+val winSpec = Window.orderBy($"salary".desc)
+empDf.filter($"year".eq("2019"))
+empDf.withColumn("rank", dense_rank().over(winSpec)).show()
+
+
+
+5)add an extra column COUNTRY and values to be populated based on below logic 
+	if empid <=100  then ABC
+	if empid>100 and  <=200  then DEF
+	else XYZ
+
+empDf.withColumn("new_col", when($"empId".le(100), "ABC").when($"empid").gt(100).and($"empid".le(200)), "DEF").otherwise("XYZ")).show()
+
+
+7) join 3 dataframes 
+	DF1 - id ,age
+	DF2 -  empid,loc
+	DF3 -  eid,dept
+Output to Display : empid, age , loc,  dept . for ALL the records of DF1
+DF1.join(DF2, DF1("id") === DF2("empid"), "inner").join(DF3, DF1("id") === DF3("eid"), "inner")
+    .select(DF2("empid"), DF1("age"), DF2("loc"), DF3("dept"))
+    .show()
+
+4) EMployee DF has 1M records. How to show the details of particular empids only .(without shuffling the data)
+
+val l = List(...)
+empDf.filter($"id".isin(l:_*))
+
+
+6)write code to modify the column names such that _1 is added to each column name  ie(name_1,designation_1 etc)
+
+Question:
+ a) 2 large positive integers are represented as two one dimensional arrays.
+  The objective is to create a function that takes two one dimensional arrays and  sums them up and return a one dimensional array.
+     -- For eg., 1234, 3456 are represented as
+                              number1  [1,2,3,4]
+                              number1  [3,4,5,6]
+   ——————————————
+                    Expected Output    [4,6,9,0]
+
+def sum(num1: List[Int], num2: List[Int]): List[Int] = {
+	var result = List.empty[Int]
+  var remainder = 0
+  var counter = 1
+	for((m, n) <- num1.zip(num2).reverse) {
+  	val sum = m + n + remainder
+    if(counter !=
+    result +: (sum / 10)
+    remainder = sum % 10
+  }
+}
+
+List((1,3), (2,4), (3,5),.. )
+
+b) Make the implementation production ready code.
+  private int[] addLargeIntegers(int[] number1, int[] number2) {
+  }
