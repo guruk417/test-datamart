@@ -1,10 +1,16 @@
 def read_from_mysql(jdbc_params, spark):
     return spark \
         .read.format("jdbc") \
-        .options("driver", "com.mysql.cj.jdbc.Driver") \
+        .option("driver", "com.mysql.cj.jdbc.Driver") \
         .options(**jdbc_params) \
         .load()
 
+
+def read_from_sftp(spark,file_loc,sftp_options):
+    return spark \
+        .read.format("com.springml.spark.sftp") \
+        .options(**sftp_options)\
+        .load(file_loc)
 
 def get_redshift_jdbc_url(redshift_config: dict):
     host = redshift_config["redshift_conf"]["host"]
