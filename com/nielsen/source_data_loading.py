@@ -75,3 +75,5 @@ if __name__ == '__main__':
                 .partitionBy("run_dt")\
                 .mode("overwrite")\
                 .parquet(stg_path)
+
+    spark.stop()
