@@ -4,8 +4,9 @@ source_list:
 
 SB:
   mysql_conf:
+    dbtable: testdb.TRANSACTIONSYNC
     partition_column: App_Transaction_Id
-    query : "(select * from testdb.TRANSACTIONSYNC) as t"
+    query : "(select * from testdb.TRANSACTIONSYNC where Internal_Member_Id = 'PC7135361') as t"
 
 OL:
   sftp_conf:
