@@ -34,6 +34,7 @@ if __name__ == '__main__':
 
     src_list = app_conf['source_list']
     staging_dir = app_conf["s3_conf"]["staging_dir"]
+    #
     for src in src_list:
         src_conf = app_conf[src]
         stg_path = "s3a://" + app_conf["s3_conf"]["s3_bucket"] + "/" + staging_dir + "/" + src
