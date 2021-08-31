@@ -16,6 +16,7 @@ OL:
 
 s3_conf:
   s3_bucket: guru-1234
+  staging_dir: output
 
 mongodb_config:
   database: school
