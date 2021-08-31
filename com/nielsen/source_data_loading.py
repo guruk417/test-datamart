@@ -42,7 +42,7 @@ if __name__ == '__main__':
             jdbc_params = {"url": ut.get_mysql_jdbc_url(app_secret),
                            "lowerBound": "1",
                            "upperBound": "100",
-                           "dbtable": src_list["mysql_conf"]["dbtable"],
+                           "dbtable": src_list["mysql_conf"]["query"],
                            "numPartitions": "2",
                            "partitionColumn": src_list["mysql_conf"]["partition_column"],
                            "user": app_secret["mysql_conf"]["username"],
