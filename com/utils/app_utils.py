@@ -1,3 +1,11 @@
+def read_from_mysql(jdbc_params, spark):
+    return spark \
+        .read.format("jdbc") \
+        .option("driver", "com.mysql.cj.jdbc.Driver") \
+        .options(**jdbc_params) \
+        .load()
+
+
 def get_redshift_jdbc_url(redshift_config: dict):
     host = redshift_config["redshift_conf"]["host"]
     port = redshift_config["redshift_conf"]["port"]
